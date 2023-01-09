@@ -1,0 +1,10 @@
+stages:
+  - Test
+
+test:
+  stage: Test
+  image: python:3.10.6-slim
+  script:
+    - python --version
+    - echo "hello"
+
