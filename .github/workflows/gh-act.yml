@@ -1,7 +1,13 @@
 name: test on gh
 on: [push]
 jobs:
-  test:
+  test-linux:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "hello"
+      - run: echo "hello from ubuntu"
+      - run: python --version 
+  test-python:
+    runs-on: macos-11
+    steps:
+      - run: echo "hello from macos"
+      - run: python --version
