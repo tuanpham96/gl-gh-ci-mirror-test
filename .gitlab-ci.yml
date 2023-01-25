@@ -34,7 +34,7 @@ get-gh-log:
 
       ls gh-act
 
-      curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" "$(jq '.workflow_runs[].jobs_url' gh-act/query.json)" -o gh-act/jobs.json
+      curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" $(jq '.workflow_runs[].jobs_url' gh-act/query.json | sed 's/\"//g') -o gh-act/jobs.json
 
       ls gh-act
 
@@ -42,7 +42,7 @@ get-gh-log:
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        "$(jq '.workflow_runs[].logs_url' gh-act/query.json)"
+        $(jq '.workflow_runs[].logs_url' gh-act/query.json | sed 's/\"//g')
         -L --output gh-act/logs.zip
 
       mkdir -p gh-act/logs
