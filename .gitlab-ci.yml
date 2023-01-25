@@ -23,20 +23,26 @@ get-gh-log:
   start_in: 5 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
-    - apt-get install curl jq -y
+    - apt-get install curl jq unzip -y
   script:
     - |
       echo "Obtaining Github Actions workflow logs"
 
       mkdir gh-act
 
-      curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs?head_sha=$CI_COMMIT_SHA -o gh-act/query.json
+      curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs?head_sha=$CI_COMMIT_SHA \
+        -o gh-act/query.json
 
-      ls gh-act
-
-      curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" $(jq '.workflow_runs[].jobs_url' gh-act/query.json | sed 's/\"//g') -o gh-act/jobs.json
-
-      ls gh-act
+      curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        $(jq '.workflow_runs[].jobs_url' gh-act/query.json | sed 's/\"//g') \
+        -o gh-act/jobs.json
 
       curl \
         -H "Accept: application/vnd.github+json" \
