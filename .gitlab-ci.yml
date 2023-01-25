@@ -9,21 +9,21 @@ gl-job-a:
     - python --version
     - echo "hello A"
 
-gl-job-b:
-  stage: Independent Gitlab CI
-  image: python:3.11-slim
-  script:
-    - python --version
-    - echo "hello B"
+# gl-job-b:
+#   stage: Independent Gitlab CI
+#   image: python:3.11-slim
+#   script:
+#     - python --version
+#     - echo "hello B"
 
 get-gh-log:
   stage: From Github Actions
   image: debian:stable-slim
   when: delayed
-  start_in: 1 minutes
+  start_in: 30 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
-    - apt install jq
+    - apt-get install jq -y
   script:
     - >
       echo "Obtaining Github Actions workflow logs"
