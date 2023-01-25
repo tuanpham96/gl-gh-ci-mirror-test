@@ -1,13 +1,29 @@
 name: test on gh
 on: [push]
 jobs:
-  test-linux:
+  test-linux-success:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "hello from ubuntu"
-      - run: python --version 
-  test-python:
+      - run: echo "hello from ubuntu - success"
+      - run: uname -a
+      - run: python --version
+  test-linux-failure:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "hello from ubuntu - failure"
+      - run: uname -a
+      - run: python --version
+      - run: exit 1
+  test-macos-success:
     runs-on: macos-11
     steps:
-      - run: echo "hello from macos"
+      - run: echo "hello from macos - success"
+      - run: uname -a
       - run: python --version
+  test-macos-failure:
+    runs-on: macos-11
+    steps:
+      - run: uname -a
+      - run: echo "hello from macos - failure"
+      - run: python --version
+      - run: exit 1

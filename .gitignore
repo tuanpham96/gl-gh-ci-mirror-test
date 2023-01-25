@@ -1,2 +1,5 @@
 .venv/
 .envrc
+*.zip
+*.tar.gz
+*.tar.xz
