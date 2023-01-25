@@ -1,10 +1,119 @@
 stages:
-  - Test
+  - Independent Gitlab CI
+  - From Github Actions
 
-test:
-  stage: Test
+gl-job-a:
+  stage: Independent Gitlab CI
   image: python:3.10.6-slim
   script:
     - python --version
-    - echo "hello"
+    - echo "hello A"
 
+gl-job-b:
+  stage: Independent Gitlab CI
+  image: python:latest-slim
+  script:
+    - python --version
+    - echo "hello B"
+
+get-gh-log:
+  stage: From Github Actions
+  image: debian:latest-slim
+  when: delayed
+  start_in: 5 minutes
+  before_script:
+    - apt-get update -y && apt-get upgrade -y
+    - apt install jq
+  script:
+    - >
+      echo "Obtaining Github Actions workflow logs"
+
+      [ -d gh-act ] || mkdir gh-act
+      curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs?head_sha=$CI_COMMIT_SHA \
+        -o gh-act/query.json
+
+      curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "$(jq '.workflow_runs[].jobs_url' gh-act/query.json)"
+        -o gh-act/jobs.json
+
+      curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "$(jq '.workflow_runs[].logs_url' gh-act/query.json)"
+        -L --output gh-act/logs.zip
+
+      mkdir -p gh-act/logs
+
+      unzip gh-act/logs.zip -d gh-act/logs
+
+      mkdir -p gh-act/jobs
+
+      find gh-act/logs  -maxdepth 1 -mindepth 1 -type d -print0 | \
+        while read -d $'\0' job_logdir
+          do
+            job_name="$(basename "$job_logdir")"
+            job_dir=gh-act/jobs/"$job_name"
+            mkdir -p "$job_dir"
+            jq -r ".jobs[] | select(.name==\"$job_name\") | .conclusion" gh-act/jobs.json > "$job_dir"/CONCLUSION
+            jq -r ".jobs[] | select(.name==\"$job_name\") | .status" gh-act/jobs.json > "$job_dir"/STATUS
+        done
+
+  artifacts:
+      paths:
+        - gh-act/*
+      expire_in: 1 hour
+
+
+test-linux-success:
+  stage: From Github Actions
+  image: debian:latest-slim
+  needs:
+    - job: get-gh-log
+      artifacts: true
+  script:
+    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
+    - |
+      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
+
+
+test-linux-failure:
+  stage: From Github Actions
+  image: debian:latest-slim
+  needs:
+    - job: get-gh-log
+      artifacts: true
+  script:
+    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
+    - |
+      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
+
+
+test-macos-success:
+  stage: From Github Actions
+  image: debian:latest-slim
+  needs:
+    - job: get-gh-log
+      artifacts: true
+  script:
+    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
+    - |
+      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
+
+test-macos-failure:
+  stage: From Github Actions
+  image: debian:latest-slim
+  needs:
+    - job: get-gh-log
+      artifacts: true
+  script:
+    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
+    - |
+      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
