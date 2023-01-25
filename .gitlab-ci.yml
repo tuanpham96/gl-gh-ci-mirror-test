@@ -11,7 +11,7 @@ gl-job-a:
 
 gl-job-b:
   stage: Independent Gitlab CI
-  image: python:latest-slim
+  image: python:3.11-slim
   script:
     - python --version
     - echo "hello B"
