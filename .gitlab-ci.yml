@@ -18,9 +18,9 @@ gl-job-b:
 
 get-gh-log:
   stage: From Github Actions
-  image: debian:latest-slim
+  image: debian:stable-slim
   when: delayed
-  start_in: 5 minutes
+  start_in: 1 minutes
   before_script:
     - apt-get update -y && apt-get upgrade -y
     - apt install jq
@@ -74,7 +74,7 @@ get-gh-log:
 
 test-linux-success:
   stage: From Github Actions
-  image: debian:latest-slim
+  image: debian:stable-slim
   needs:
     - job: get-gh-log
       artifacts: true
@@ -86,7 +86,7 @@ test-linux-success:
 
 test-linux-failure:
   stage: From Github Actions
-  image: debian:latest-slim
+  image: debian:stable-slim
   needs:
     - job: get-gh-log
       artifacts: true
@@ -98,7 +98,7 @@ test-linux-failure:
 
 test-macos-success:
   stage: From Github Actions
-  image: debian:latest-slim
+  image: debian:stable-slim
   needs:
     - job: get-gh-log
       artifacts: true
@@ -109,7 +109,7 @@ test-macos-success:
 
 test-macos-failure:
   stage: From Github Actions
-  image: debian:latest-slim
+  image: debian:stable-slim
   needs:
     - job: get-gh-log
       artifacts: true
