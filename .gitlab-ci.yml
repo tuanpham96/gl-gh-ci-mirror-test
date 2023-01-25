@@ -23,7 +23,7 @@ get-gh-log:
   start_in: 30 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
-    - apt-get install jq -y
+    - apt-get install curl jq -y
   script:
     - >
       echo "Obtaining Github Actions workflow logs"
