@@ -67,10 +67,13 @@ find "$LOGS_DIR"  -maxdepth 1 -mindepth 1 -type d -print0 | \
 echo "Generating child pipeline CI file"
 
 jobs_str="$(jq '.jobs[].name' "$JOB_FILE" | tr '\n' ',')"
-jsonnet -e \
-    "local jobs=[$jobs_str];\
-    local ci = import '$CHILD_TEMPLATE'; \
-    ci(jobs)" \
+jsonnet \
+    --ext-str LOGS_DIR="$LOGS_DIR" \
+    --ext-str JOBS_DIR="$JOBS_DIR" \
+    -e \
+        "local jobs=[$jobs_str];\
+        local ci = import '$CHILD_TEMPLATE'; \
+        ci(jobs)" \
     > "$CHILD_CI_FILE"
 
 echo "Content of the generated CI file for child pipeline"
