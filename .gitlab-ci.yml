@@ -14,12 +14,12 @@ gl-job-a:
     - python --version
     - echo "hello A"
 
-# gl-job-b:
-#   stage: Independent Gitlab CI
-#   image: python:3.11-slim
-#   script:
-#     - python --version
-#     - echo "hello B"
+gl-job-b:
+  stage: Independent Gitlab CI
+  image: python:3.11-slim
+  script:
+    - python --version
+    - echo "hello B"
 
 get-gh-log:
   stage: From Github Actions
