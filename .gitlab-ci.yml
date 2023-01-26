@@ -93,6 +93,6 @@ trigger-report:
     - get-gh-log
   trigger:
     include:
-      - artifact: gh-act/gl-ci-report.yml
+      - artifact: gh-act/
         job: get-gh-log
     strategy: depend
