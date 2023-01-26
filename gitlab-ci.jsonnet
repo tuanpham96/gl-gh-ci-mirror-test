@@ -3,10 +3,14 @@ local template(job) =
     image: "alpine:latest",
     stage: "test",
     needs: [
+      # {
+      #   # job: "get-gh-log",
+      #   job: "trigger-report",
+      #   artifacts: true
+      # }
       {
-        # job: "get-gh-log",
-        job: "trigger-report",
-        artifacts: true
+        pipeline: "$PARENT_PIPELINE_ID",
+        job: "get-gh-log"
       }
     ],
     script: [

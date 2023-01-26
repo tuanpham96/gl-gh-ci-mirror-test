@@ -1,6 +1,7 @@
 variables:
   GITHUB_MIRROR: https://github.com/tuanpham96/gl-gh-ci-mirror-test
   GITHUB_ACTIONS_URL: https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs
+  PARENT_PIPELINE_ID: $CI_PIPELINE_ID # see <https://gitlab.com/gitlab-org/gitlab/-/issues/213457#note_1129225239>
 
 stages:
   # - Independent Gitlab CI
