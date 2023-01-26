@@ -3,23 +3,23 @@ variables:
   GITHUB_ACTIONS_URL: https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs
 
 stages:
-  - Independent Gitlab CI
+  # - Independent Gitlab CI
   - From Github Actions
   - Test on GH reports
 
-gl-job-a:
-  stage: Independent Gitlab CI
-  image: python:3.10.6-slim
-  script:
-    - python --version
-    - echo "hello A"
+# gl-job-a:
+#   stage: Independent Gitlab CI
+#   image: python:3.10.6-slim
+#   script:
+#     - python --version
+#     - echo "hello A"
 
-gl-job-b:
-  stage: Independent Gitlab CI
-  image: python:3.11-slim
-  script:
-    - python --version
-    - echo "hello B"
+# gl-job-b:
+#   stage: Independent Gitlab CI
+#   image: python:3.11-slim
+#   script:
+#     - python --version
+#     - echo "hello B"
 
 get-gh-log:
   stage: From Github Actions
@@ -90,9 +90,10 @@ get-gh-log:
 trigger-report:
   stage: From Github Actions
   needs:
-    - get-gh-log
+    - job: get-gh-log
+      artifacts: true
   trigger:
     include:
-      - artifact: gh-act/
+      - artifact: gh-act/gl-ci-report.yml
         job: get-gh-log
     strategy: depend

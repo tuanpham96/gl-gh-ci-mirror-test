@@ -9,6 +9,7 @@ local template(job) =
     #   }
     # ],
     script: [
+      "ls -a",
       "more gh-act/logs/$job/*.txt | cat",
       "[ \"$(cat gh-act/jobs/$job/CONCLUSION)\" = \"success\" ] && exit 0 || exit 1"
     ]
