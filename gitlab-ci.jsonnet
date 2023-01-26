@@ -1,7 +1,7 @@
 local template(job) =
   {
     image: "alpine:latest",
-    stage: "Test on GH reports",
+    stage: "test",
     needs: [
       {
         job: "get-gh-log",
