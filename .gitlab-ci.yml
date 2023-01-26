@@ -1,3 +1,7 @@
+variables:
+  GITHUB_MIRROR: https://github.com/tuanpham96/gl-gh-ci-mirror-test
+  GITHUB_ACTIONS_URL: https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs
+
 stages:
   - Independent Gitlab CI
   - From Github Actions
@@ -23,33 +27,32 @@ get-gh-log:
   start_in: 5 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
-    - apt-get install curl jq unzip -y
+    - apt-get install curl jq unzip jsonnet -y
   script:
     - |
       echo "Obtaining Github Actions workflow logs"
 
       mkdir gh-act
 
-      curl \
+      _curl_args=(
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs?head_sha=$CI_COMMIT_SHA \
+      )
+
+      curl "${_curl_args[@]}" \
+        "$GITHUB_ACTIONS_URL"?head_sha=$CI_COMMIT_SHA \
         -o gh-act/query.json
 
-      curl \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        $(jq '.workflow_runs[].jobs_url' gh-act/query.json | sed 's/\"//g') \
+      curl "${_curl_args[@]}" \
+        $(jq --raw-output '.workflow_runs[].jobs_url' gh-act/query.json) \
         -o gh-act/jobs.json
 
-      curl \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        $(jq '.workflow_runs[].logs_url' gh-act/query.json | sed 's/\"//g') \
+      curl "${_curl_args[@]}" \
+        $(jq --raw-output '.workflow_runs[].logs_url' gh-act/query.json) \
         -L --output gh-act/logs.zip
+
+      unset _curl_args
 
       mkdir -p gh-act/logs
 
@@ -67,54 +70,26 @@ get-gh-log:
             jq -r ".jobs[] | select(.name==\"$job_name\") | .status" gh-act/jobs.json > "$job_dir"/STATUS
         done
 
+      jsonnet -e \
+        "local jobs=[$(jq '.jobs[].name' jobs.json | tr '\n' ',')];\
+         local ci = import 'gitlab-ci.jsonnet'; \
+         ci(jobs)" \
+        > gh-act/gl-ci-report.yml
+
+      cat gh-act/gl-ci-report.yml
+
   artifacts:
       paths:
         - gh-act/*
       expire_in: 1 hour
 
 
-test-linux-success:
+trigger-report:
   stage: From Github Actions
-  image: debian:stable-slim
   needs:
-    - job: get-gh-log
-      artifacts: true
-  script:
-    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
-    - |
-      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
-
-
-test-linux-failure:
-  stage: From Github Actions
-  image: debian:stable-slim
-  needs:
-    - job: get-gh-log
-      artifacts: true
-  script:
-    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
-    - |
-      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
-
-
-test-macos-success:
-  stage: From Github Actions
-  image: debian:stable-slim
-  needs:
-    - job: get-gh-log
-      artifacts: true
-  script:
-    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
-    - |
-      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
-
-test-macos-failure:
-  stage: From Github Actions
-  image: debian:stable-slim
-  needs:
-    - job: get-gh-log
-      artifacts: true
-  script:
-    - more gh-act/logs/$CI_JOB_NAME/*.txt | cat
-    - |
-      [ "$(cat gh-act/jobs/$CI_JOB_NAME/CONCLUSION)" = "success" ] && exit 0 || exit 1
+    - get-gh-log
+  trigger:
+    include:
+      - artifact: gh-act/gl-ci-report.yml
+        job: get-gh-log
+    strategy: depend
