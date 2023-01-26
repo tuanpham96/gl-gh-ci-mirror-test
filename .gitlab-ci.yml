@@ -5,6 +5,7 @@ variables:
 stages:
   - Independent Gitlab CI
   - From Github Actions
+  - Test on GH reports
 
 gl-job-a:
   stage: Independent Gitlab CI
@@ -24,7 +25,7 @@ get-gh-log:
   stage: From Github Actions
   image: debian:stable-slim
   when: delayed
-  start_in: 30 seconds
+  start_in: 10 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
     - apt-get install curl jq unzip jsonnet -y

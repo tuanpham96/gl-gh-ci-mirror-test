@@ -1,7 +1,7 @@
 local template(job) =
   {
     image: "alpine:latest",
-    stage: "From Github Actions",
+    stage: "Test on GH reports",
     needs: [
       {
         job: "get-gh-log",
@@ -14,12 +14,7 @@ local template(job) =
     ]
   };
 
-function(jobs)
-{
-  stage: [
-    "Test on GH reports",
-  ]
-} + {
+function(jobs) {
   ['gh-act/' + job]: template(job),
   for job in jobs
 }
