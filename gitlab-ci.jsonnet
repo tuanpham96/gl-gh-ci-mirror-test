@@ -14,7 +14,12 @@ local template(job) =
     ]
   };
 
-function(jobs) {
+function(jobs)
+{
+  stage: [
+    "Test on GH reports",
+  ]
+} + {
   ['gh-act/' + job]: template(job),
   for job in jobs
 }
