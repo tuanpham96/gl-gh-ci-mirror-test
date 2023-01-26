@@ -24,7 +24,7 @@ get-gh-log:
   stage: From Github Actions
   image: debian:stable-slim
   when: delayed
-  start_in: 5 seconds
+  start_in: 30 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
     - apt-get install curl jq unzip jsonnet -y
@@ -71,10 +71,12 @@ get-gh-log:
         done
 
       jsonnet -e \
-        "local jobs=[$(jq '.jobs[].name' jobs.json | tr '\n' ',')];\
+        "local jobs=[$(jq '.jobs[].name' gh-act/jobs.json | tr '\n' ',')];\
          local ci = import 'gitlab-ci.jsonnet'; \
          ci(jobs)" \
         > gh-act/gl-ci-report.yml
+
+      ls gh-act
 
       cat gh-act/gl-ci-report.yml
 
