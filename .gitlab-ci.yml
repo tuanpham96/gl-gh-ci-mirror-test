@@ -2,6 +2,9 @@ variables:
   GITHUB_MIRROR: https://github.com/tuanpham96/gl-gh-ci-mirror-test
   GITHUB_ACTIONS_URL: https://api.github.com/repos/tuanpham96/gl-gh-ci-mirror-test/actions/runs
   PARENT_PIPELINE_ID: $CI_PIPELINE_ID # see <https://gitlab.com/gitlab-org/gitlab/-/issues/213457#note_1129225239>
+  GITHUB_ACTIONS_DATA_DIR: gh-act
+  CHILD_CI_FILE: $CI_DATA_DIR/gl-ci-report.yml
+  CHILD_TEMPLATE: .gitlab/gitlab-ci.jsonnet
 
 stages:
   - Independent Gitlab CI
@@ -30,62 +33,11 @@ get-gh-log:
     - apt-get update -y && apt-get upgrade -y
     - apt-get install curl jq unzip jsonnet -y
   script:
-    - |
-      echo "Obtaining Github Actions workflow logs"
-
-      mkdir gh-act
-
-      _curl_args=(
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-      )
-
-      curl "${_curl_args[@]}" \
-        "$GITHUB_ACTIONS_URL"?head_sha=$CI_COMMIT_SHA \
-        -o gh-act/query.json
-
-      curl "${_curl_args[@]}" \
-        $(jq --raw-output '.workflow_runs[].jobs_url' gh-act/query.json) \
-        -o gh-act/jobs.json
-
-      curl "${_curl_args[@]}" \
-        $(jq --raw-output '.workflow_runs[].logs_url' gh-act/query.json) \
-        -L --output gh-act/logs.zip
-
-      unset _curl_args
-
-      mkdir -p gh-act/logs
-
-      unzip gh-act/logs.zip -d gh-act/logs
-
-      mkdir -p gh-act/jobs
-
-      find gh-act/logs  -maxdepth 1 -mindepth 1 -type d -print0 | \
-        while read -d $'\0' job_logdir
-          do
-            job_name="$(basename "$job_logdir")"
-            job_dir=gh-act/jobs/"$job_name"
-            mkdir -p "$job_dir"
-            jq -r ".jobs[] | select(.name==\"$job_name\") | .conclusion" gh-act/jobs.json > "$job_dir"/CONCLUSION
-            jq -r ".jobs[] | select(.name==\"$job_name\") | .status" gh-act/jobs.json > "$job_dir"/STATUS
-        done
-
-      jsonnet -e \
-        "local jobs=[$(jq '.jobs[].name' gh-act/jobs.json | tr '\n' ',')];\
-         local ci = import 'gitlab-ci.jsonnet'; \
-         ci(jobs)" \
-        > gh-act/gl-ci-report.yml
-
-      ls gh-act
-
-      cat gh-act/gl-ci-report.yml
-
+    - bash .gitlab/get-gh-log.sh
   artifacts:
       paths:
-        - gh-act/*
+        - $GITHUB_ACTIONS_DATA_DIR/*
       expire_in: 1 hour
-
 
 trigger-report:
   stage: From Github Actions
@@ -94,6 +46,6 @@ trigger-report:
       artifacts: true
   trigger:
     include:
-      - artifact: gh-act/gl-ci-report.yml
+      - artifact: $CHILD_CI_FILE
         job: get-gh-log
     strategy: depend

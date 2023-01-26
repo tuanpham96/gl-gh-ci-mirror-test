@@ -28,4 +28,3 @@ function(jobs) {
   ['gh-act/' + job]: template(job),
   for job in jobs
 }
-
