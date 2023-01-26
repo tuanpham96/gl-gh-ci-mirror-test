@@ -2,12 +2,13 @@ local template(job) =
   {
     image: "alpine:latest",
     stage: "test",
-    # needs: [
-    #   {
-    #     job: "get-gh-log",
-    #     artifacts: true
-    #   }
-    # ],
+    needs: [
+      {
+        # job: "get-gh-log",
+        job: "trigger-report",
+        artifacts: true
+      }
+    ],
     script: [
       "ls -a",
       "more gh-act/logs/$job/*.txt | cat",

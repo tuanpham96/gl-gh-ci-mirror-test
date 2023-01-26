@@ -25,7 +25,7 @@ get-gh-log:
   stage: From Github Actions
   image: debian:stable-slim
   when: delayed
-  start_in: 10 seconds
+  start_in: 5 seconds
   before_script:
     - apt-get update -y && apt-get upgrade -y
     - apt-get install curl jq unzip jsonnet -y
